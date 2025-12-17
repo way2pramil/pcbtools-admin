@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3001",
-    "build": "next build",
-    "start": "next start -p 3001",
-    "lint": "next lint",
-    "prisma:generate": "prisma generate",
-    "prisma:studio": "prisma studio"
+    "dev": "bun --bun next dev -p 3001",
+    "build": "bun --bun next build",
+    "start": "bun --bun next start -p 3001",
+    "lint": "bun --bun next lint",
+    "prisma:generate": "bun prisma generate",
+    "prisma:studio": "bun prisma studio"
   },
   "dependencies": {
     "@lucia-auth/adapter-prisma": "^4.0.1",
