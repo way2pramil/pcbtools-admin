@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
 import { StatusBadge } from "@/components/status-badge";
 
+export const dynamic = "force-dynamic";
+
 export default async function BugsPage() {
   const bugs = await prisma.bugReport.findMany({
     include: {

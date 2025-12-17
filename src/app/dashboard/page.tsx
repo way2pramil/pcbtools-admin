@@ -2,6 +2,8 @@ import { Activity, Bug, Users, TrendingUp } from "lucide-react";
 import { StatsCard } from "@/components/stats-card";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   // Fetch stats from database
   const [totalUsers, totalBugs, openBugs] = await Promise.all([

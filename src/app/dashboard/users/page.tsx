@@ -2,6 +2,8 @@ import { Users as UsersIcon, Mail, Calendar } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
 
+export const dynamic = "force-dynamic";
+
 export default async function UsersPage() {
   const users = await prisma.user.findMany({
     include: {
