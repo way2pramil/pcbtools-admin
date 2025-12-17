@@ -11,13 +11,15 @@
     "prisma:studio": "prisma studio"
   },
   "dependencies": {
+    "@lucia-auth/adapter-prisma": "^4.0.1",
     "@prisma/client": "^5.20.0",
+    "arctic": "^3.5.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "lucia": "^3.2.2",
     "lucide-react": "^0.462.0",
     "next": "^16.0.0",
-    "next-auth": "^4.24.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^2.5.4"
