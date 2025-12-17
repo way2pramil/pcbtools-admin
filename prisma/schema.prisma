@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String          @id @default(cuid())
+  email      String?         @unique
+  name       String?
+  avatarUrl  String?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  sessions   Session[]
+  accounts   OAuthAccount[]
+  embeddings ToolEmbedding[]
+  bugReports BugReport[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model OAuthAccount {
+  id                String   @id @default(cuid())
+  provider          String
+  providerUserId    String
+  accessToken       String?  @db.Text
+  refreshToken      String?  @db.Text
+  accessTokenExpires DateTime?
+  userId            String
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+
+  @@unique([provider, providerUserId])
+}
+
+model ToolEmbedding {
+  id        String   @id @default(cuid())
+  toolSlug  String
+  summary   String?
+  embedding Unsupported("vector")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([toolSlug])
+}
+
+model BugReport {
+  id          String   @id @default(cuid())
+  tool        String
+  title       String
+  description String   @db.Text
+  version     String?
+  os          String?
+  status      String   @default("open")
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@index([tool])
+  @@index([userId])
+}
