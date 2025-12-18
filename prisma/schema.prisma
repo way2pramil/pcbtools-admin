@@ -8,10 +8,11 @@ datasource db {
 }
 
 // ============================================
-// Better Auth Models
+// Better Auth Tables (Admin Dashboard Auth)
+// Prefixed with "admin_" to not conflict with main site
 // ============================================
 
-model User {
+model AdminUser {
   id            String    @id @default(cuid())
   email         String    @unique
   name          String
@@ -20,13 +21,13 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  sessions      Session[]
-  accounts      Account[]
-  embeddings    ToolEmbedding[]
-  bugReports    BugReport[]
+  sessions      AdminSession[]
+  accounts      AdminAccount[]
+
+  @@map("admin_user")
 }
 
-model Session {
+model AdminSession {
   id        String   @id @default(cuid())
   userId    String
   token     String   @unique
@@ -36,12 +37,13 @@ model Session {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@map("admin_session")
 }
 
-model Account {
+model AdminAccount {
   id                    String    @id @default(cuid())
   userId                String
   accountId             String
@@ -56,22 +58,70 @@ model Account {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@map("admin_account")
 }
 
-model Verification {
+model AdminVerification {
   id         String   @id @default(cuid())
   identifier String
   value      String
   expiresAt  DateTime
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
+  @@map("admin_verification")
+}
+
+// ============================================
+// Main Site Tables (Read-only from Admin)
+// Same schema as packages/db - DO NOT MODIFY
+// ============================================
+
+model User {
+  id         String          @id @default(cuid())
+  email      String?         @unique
+  name       String?
+  avatarUrl  String?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  sessions   Session[]
+  accounts   OAuthAccount[]
+  embeddings ToolEmbedding[]
+  bugReports BugReport[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model OAuthAccount {
+  id                 String    @id @default(cuid())
+  provider           String
+  providerUserId     String
+  accessToken        String?   @db.Text
+  refreshToken       String?   @db.Text
+  accessTokenExpires DateTime?
+  userId             String
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([provider, providerUserId])
 }
 
 model ToolEmbedding {
-  id        String   @id @default(cuid())
+  id        String              @id @default(cuid())
   toolSlug  String
   summary   String?
   embedding Unsupported("vector")

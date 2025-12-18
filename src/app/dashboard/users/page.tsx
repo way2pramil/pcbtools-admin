@@ -7,11 +7,12 @@ import { Avatar, AvatarFallback, AvatarImage, Badge, Card, CardContent, CardHead
 export const dynamic = "force-dynamic";
 
 export default async function UsersPage() {
+  // Query main site User table (not admin tables)
   const users = await prisma.user.findMany({
     include: {
       accounts: {
         select: {
-          providerId: true,
+          provider: true,
         },
       },
       _count: {
@@ -25,8 +26,8 @@ export default async function UsersPage() {
     },
   });
 
-  const githubUsers = users.filter((u) => u.accounts.some((a) => a.providerId === "github")).length;
-  const googleUsers = users.filter((u) => u.accounts.some((a) => a.providerId === "google")).length;
+  const githubUsers = users.filter((u) => u.accounts.some((a) => a.provider === "github")).length;
+  const googleUsers = users.filter((u) => u.accounts.some((a) => a.provider === "google")).length;
 
   return (
     <div className="space-y-6">
@@ -65,7 +66,7 @@ export default async function UsersPage() {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10">
-                        {user.image && <AvatarImage src={user.image} alt={user.name || ""} />}
+                        {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.name || ""} />}
                         <AvatarFallback>
                           {(user.name || user.email || "U").charAt(0).toUpperCase()}
                         </AvatarFallback>
@@ -82,8 +83,8 @@ export default async function UsersPage() {
                   <TableCell>
                     <div className="flex gap-2">
                       {user.accounts.map((account) => (
-                        <Badge key={account.providerId} variant="secondary">
-                          {account.providerId}
+                        <Badge key={account.provider} variant="secondary">
+                          {account.provider}
                         </Badge>
                       ))}
                     </div>

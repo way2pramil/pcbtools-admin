@@ -3,6 +3,7 @@
  * 
  * Main auth setup for pcbtools-admin.
  * Uses Google OAuth with admin email whitelist.
+ * Tables prefixed with "admin_" to not conflict with main site.
  * 
  * @see https://www.better-auth.com/docs
  */
@@ -42,6 +43,21 @@ export const auth = betterAuth({
   advanced: {
     cookiePrefix: "pcbtools_admin",
     useSecureCookies: isProduction,
+  },
+
+  // Map to admin_ prefixed tables in Prisma
+  user: {
+    modelName: "AdminUser",
+    fields: {
+      // Field mapping if needed
+    },
+  },
+  
+  account: {
+    modelName: "AdminAccount",
+    accountLinking: {
+      enabled: true,
+    },
   },
 });
 
