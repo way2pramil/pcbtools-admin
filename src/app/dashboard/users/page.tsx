@@ -12,7 +12,7 @@ export default async function UsersPage() {
     include: {
       accounts: {
         select: {
-          provider: true,
+          providerId: true,
         },
       },
       _count: {
@@ -26,8 +26,8 @@ export default async function UsersPage() {
     },
   });
 
-  const githubUsers = users.filter((u) => u.accounts.some((a) => a.provider === "github")).length;
-  const googleUsers = users.filter((u) => u.accounts.some((a) => a.provider === "google")).length;
+  const githubUsers = users.filter((u) => u.accounts.some((a) => a.providerId === "github")).length;
+  const googleUsers = users.filter((u) => u.accounts.some((a) => a.providerId === "google")).length;
 
   return (
     <div className="space-y-6">
@@ -66,7 +66,7 @@ export default async function UsersPage() {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10">
-                        {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.name || ""} />}
+                        {user.image && <AvatarImage src={user.image} alt={user.name || ""} />}
                         <AvatarFallback>
                           {(user.name || user.email || "U").charAt(0).toUpperCase()}
                         </AvatarFallback>
@@ -83,8 +83,8 @@ export default async function UsersPage() {
                   <TableCell>
                     <div className="flex gap-2">
                       {user.accounts.map((account) => (
-                        <Badge key={account.provider} variant="secondary">
-                          {account.provider}
+                        <Badge key={account.providerId} variant="secondary">
+                          {account.providerId}
                         </Badge>
                       ))}
                     </div>
