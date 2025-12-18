@@ -2,21 +2,15 @@
  * Analytics API Route
  * 
  * Fetches Google Analytics data for the admin dashboard.
+ * Note: Auth is already enforced by dashboard layout
  */
 
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/auth/server";
 import { getAnalyticsOverview, isGAConfigured } from "@/lib/google-analytics";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  // Check auth
-  const session = await getSession();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   // Check if GA is configured
   if (!isGAConfigured()) {
     return NextResponse.json(
