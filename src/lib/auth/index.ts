@@ -41,6 +41,7 @@ export const auth = betterAuth({
       enabled: true,
       maxAge: 60 * 5, // 5 minutes
     },
+    modelName: "AdminSession", // Map to admin_session table
   },
 
   advanced: {
@@ -51,10 +52,6 @@ export const auth = betterAuth({
   // Map to admin_ prefixed tables in Prisma
   user: {
     modelName: "AdminUser",
-  },
-  
-  session: {
-    modelName: "AdminSession",
   },
   
   account: {
