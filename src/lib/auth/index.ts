@@ -48,9 +48,10 @@ export const auth = betterAuth({
   // Map to admin_ prefixed tables in Prisma
   user: {
     modelName: "AdminUser",
-    fields: {
-      // Field mapping if needed
-    },
+  },
+  
+  session: {
+    modelName: "AdminSession",
   },
   
   account: {
@@ -58,6 +59,10 @@ export const auth = betterAuth({
     accountLinking: {
       enabled: true,
     },
+  },
+  
+  verification: {
+    modelName: "AdminVerification",
   },
 });
 
