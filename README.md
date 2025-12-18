@@ -7,8 +7,43 @@ Admin dashboard for managing [pcbtools.xyz](https://pcbtools.xyz) - hosted at [a
 - **Framework**: Next.js 16 (App Router)
 - **UI**: Tailwind CSS + shadcn/ui
 - **Database**: PostgreSQL (shared with main site)
-- **Auth**: NextAuth.js with Google OAuth
+- **Auth**: Better Auth with Google OAuth
+- **ORM**: Prisma 7 with pg adapter
 - **Deployment**: Docker → Coolify
+
+---
+
+## ⚠️ CRITICAL: Shared Database
+
+This project shares a database with the main pcbtools.xyz site.
+
+### Schema Ownership
+
+| Tables | Owner |
+|--------|-------|
+| `User`, `Session`, `Account`, `Verification`, `ToolEmbedding`, `BugReport` | **pcbtools (main)** |
+| `admin_user`, `admin_session`, `admin_account`, `admin_verification` | **pcbtools-admin** |
+
+### Schema Update Rules
+
+1. **NEVER push this schema before the main site** — it can overwrite shared tables
+2. **Read-only tables MUST match** `apps/web/prisma/schema.prisma` exactly
+3. **Only modify admin-prefixed tables** (`admin_*`) in this schema
+4. **Use `db push`, not migrations** — both projects modify the same DB
+
+### Update Procedure
+
+```bash
+# ALWAYS update main site FIRST:
+cd pcbtools/apps/web
+pnpm exec prisma db push --accept-data-loss
+
+# Then sync admin schema:
+cd pcbtools-admin
+# 1. Copy shared table definitions from main schema
+# 2. Push admin schema
+pnpm exec prisma db push --accept-data-loss
+```
 
 ---
 
