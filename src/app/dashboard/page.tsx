@@ -1,5 +1,6 @@
 import { Activity, Bug, Users, TrendingUp } from "lucide-react";
-import { StatsCard } from "@/components/stats-card";
+import { StatsCard } from "@/components/data";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -17,8 +18,8 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-        <p className="text-sm text-slate-400">
+        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <p className="text-sm text-muted-foreground">
           Overview of pcbtools.xyz admin metrics
         </p>
       </div>
@@ -27,41 +28,37 @@ export default async function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Total Users"
-          value={totalUsers.toString()}
+          value={totalUsers}
           icon={Users}
-          trend="+12%"
-          trendUp={true}
         />
         <StatsCard
           title="Open Bugs"
-          value={openBugs.toString()}
+          value={openBugs}
           icon={Bug}
-          trend="-5%"
-          trendUp={false}
         />
         <StatsCard
           title="Resolved Bugs"
-          value={resolvedBugs.toString()}
+          value={resolvedBugs}
           icon={Activity}
-          trend="+18%"
-          trendUp={true}
         />
         <StatsCard
           title="Success Rate"
-          value={totalBugs > 0 ? `${Math.round((resolvedBugs / totalBugs) * 100)}%` : "0%"}
+          value={totalBugs > 0 ? `${Math.round((resolvedBugs / totalBugs) * 100)}%` : "N/A"}
           icon={TrendingUp}
-          trend="+7%"
-          trendUp={true}
         />
       </div>
 
       {/* Recent Activity */}
-      <div className="rounded-xl border border-white/10 bg-slate-900/60 p-6">
-        <h2 className="mb-4 text-lg font-semibold text-white">Recent Activity</h2>
-        <p className="text-sm text-slate-400">
-          Activity feed coming soon...
-        </p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Activity feed coming soon...
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }

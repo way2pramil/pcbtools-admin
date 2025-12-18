@@ -1,9 +1,20 @@
 import { Bug, Clock, CheckCircle2, XCircle } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
-import { StatusBadge } from "@/components/status-badge";
+import { StatsCard } from "@/components/data";
+import { Badge, Card, CardContent, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
+
+function StatusBadge({ status }: { status: string }) {
+  const variants: Record<string, "default" | "warning" | "success" | "secondary"> = {
+    open: "default",
+    "in-progress": "warning",
+    resolved: "success",
+    closed: "secondary",
+  };
+  return <Badge variant={variants[status] || "default"}>{status}</Badge>;
+}
 
 export default async function BugsPage() {
   const bugs = await prisma.bugReport.findMany({
@@ -30,100 +41,69 @@ export default async function BugsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-white">Bug Reports</h1>
-        <p className="text-sm text-slate-400">
+        <h1 className="text-3xl font-bold">Bug Reports</h1>
+        <p className="text-sm text-muted-foreground">
           Manage user-submitted bug reports for KiNotes
         </p>
       </div>
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-4">
-        <div className="rounded-lg border border-white/10 bg-slate-900/60 p-4">
-          <div className="flex items-center gap-2">
-            <Bug className="h-4 w-4 text-red-400" />
-            <span className="text-xs font-medium text-slate-400">Open</span>
-          </div>
-          <p className="mt-2 text-2xl font-bold text-white">{stats.open}</p>
-        </div>
-        <div className="rounded-lg border border-white/10 bg-slate-900/60 p-4">
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-yellow-400" />
-            <span className="text-xs font-medium text-slate-400">In Progress</span>
-          </div>
-          <p className="mt-2 text-2xl font-bold text-white">{stats.inProgress}</p>
-        </div>
-        <div className="rounded-lg border border-white/10 bg-slate-900/60 p-4">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-            <span className="text-xs font-medium text-slate-400">Resolved</span>
-          </div>
-          <p className="mt-2 text-2xl font-bold text-white">{stats.resolved}</p>
-        </div>
-        <div className="rounded-lg border border-white/10 bg-slate-900/60 p-4">
-          <div className="flex items-center gap-2">
-            <XCircle className="h-4 w-4 text-slate-400" />
-            <span className="text-xs font-medium text-slate-400">Closed</span>
-          </div>
-          <p className="mt-2 text-2xl font-bold text-white">{stats.closed}</p>
-        </div>
+        <StatsCard title="Open" value={stats.open} icon={Bug} />
+        <StatsCard title="In Progress" value={stats.inProgress} icon={Clock} />
+        <StatsCard title="Resolved" value={stats.resolved} icon={CheckCircle2} />
+        <StatsCard title="Closed" value={stats.closed} icon={XCircle} />
       </div>
 
       {/* Bug Reports Table */}
-      <div className="rounded-xl border border-white/10 bg-slate-900/60">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="border-b border-white/10">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
-                  Bug
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
-                  Reporter
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
-                  Status
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-slate-400">
-                  Date
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/10">
+      <Card>
+        <CardHeader>
+          <CardTitle>All Reports</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Bug</TableHead>
+                <TableHead>Reporter</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Date</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {bugs.map((bug) => (
-                <tr key={bug.id} className="hover:bg-white/5">
-                  <td className="px-6 py-4">
+                <TableRow key={bug.id}>
+                  <TableCell>
                     <div>
-                      <p className="font-medium text-white">{bug.title}</p>
-                      <p className="text-xs text-slate-400">{bug.tool}</p>
+                      <p className="font-medium">{bug.title}</p>
+                      <p className="text-xs text-muted-foreground">{bug.tool}</p>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
+                  </TableCell>
+                  <TableCell>
                     <div>
-                      <p className="text-sm text-slate-300">
-                        {bug.user.name || "Unknown"}
-                      </p>
-                      <p className="text-xs text-slate-500">{bug.user.email}</p>
+                      <p className="text-sm">{bug.user?.name || "Unknown"}</p>
+                      <p className="text-xs text-muted-foreground">{bug.user?.email}</p>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
+                  </TableCell>
+                  <TableCell>
                     <StatusBadge status={bug.status} />
-                  </td>
-                  <td className="px-6 py-4 text-sm text-slate-400">
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
                     {format(new Date(bug.createdAt), "MMM d, yyyy")}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
 
-        {bugs.length === 0 && (
-          <div className="py-12 text-center">
-            <Bug className="mx-auto h-12 w-12 text-slate-600" />
-            <p className="mt-4 text-sm text-slate-400">No bug reports yet</p>
-          </div>
-        )}
-      </div>
+          {bugs.length === 0 && (
+            <div className="py-12 text-center">
+              <Bug className="mx-auto h-12 w-12 text-muted-foreground" />
+              <p className="mt-4 text-sm text-muted-foreground">No bug reports yet</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { Sidebar } from "@/components/sidebar";
-import { Header } from "@/components/header";
+import { Sidebar, Header } from "@/components/layout";
 import { validateRequest, type AuthenticatedUser } from "@/lib/auth/lucia";
 import { isAdmin } from "@/lib/auth/admin";
 
@@ -25,11 +24,14 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100">
+    <div className="min-h-screen bg-background">
       <Sidebar />
-      <div className="flex flex-1 flex-col">
-        <Header userName={profile.name} userEmail={profile.email} />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+      <div className="ml-64 flex flex-col min-h-screen">
+        <Header
+          user={{ name: profile.name, email: profile.email ?? "", image: profile.avatarUrl }}
+          breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }]}
+        />
+        <main className="flex-1 p-6">{children}</main>
       </div>
     </div>
   );
