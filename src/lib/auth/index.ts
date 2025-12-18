@@ -22,7 +22,10 @@ export const auth = betterAuth({
   baseURL: env.appUrl,
   secret: env.betterAuthSecret,
 
-  trustedOrigins: [env.appUrl],
+  trustedOrigins: [
+    env.appUrl,
+    "http://localhost:3001", // Local development
+  ],
 
   socialProviders: {
     google: {
