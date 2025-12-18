@@ -7,7 +7,7 @@
  * @see https://pris.ly/d/prisma7-client-config
  */
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from ".prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 

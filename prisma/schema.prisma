@@ -77,47 +77,69 @@ model AdminVerification {
 
 // ============================================
 // Main Site Tables (Read-only from Admin)
-// Same schema as packages/db - DO NOT MODIFY
+// MUST match apps/web/prisma/schema.prisma exactly
 // ============================================
 
 model User {
-  id         String          @id @default(cuid())
-  email      String?         @unique
-  name       String?
-  avatarUrl  String?
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
+  id            String    @id @default(cuid())
+  email         String?   @unique
+  emailVerified Boolean   @default(false)
+  name          String?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  sessions   Session[]
-  accounts   OAuthAccount[]
-  embeddings ToolEmbedding[]
-  bugReports BugReport[]
+  sessions      Session[]
+  accounts      Account[]
+  embeddings    ToolEmbedding[]
+  bugReports    BugReport[]
 }
 
 model Session {
   id        String   @id @default(cuid())
   userId    String
+  token     String   @unique
   expiresAt DateTime
+  ipAddress String?
+  userAgent String?
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
 
-model OAuthAccount {
-  id                 String    @id @default(cuid())
-  provider           String
-  providerUserId     String
-  accessToken        String?   @db.Text
-  refreshToken       String?   @db.Text
-  accessTokenExpires DateTime?
-  userId             String
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  accountId             String
+  providerId            String
+  accessToken           String?   @db.Text
+  refreshToken          String?   @db.Text
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  idToken               String?   @db.Text
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([provider, providerUserId])
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
 }
 
 model ToolEmbedding {
