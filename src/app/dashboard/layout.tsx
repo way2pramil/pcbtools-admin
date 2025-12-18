@@ -1,7 +1,14 @@
+/**
+ * Dashboard Layout
+ * 
+ * Protected layout for all dashboard pages.
+ * Requires authentication and admin email whitelist.
+ */
+
 import { redirect } from "next/navigation";
 
 import { Sidebar, Header } from "@/components/layout";
-import { validateRequest, type AuthenticatedUser } from "@/lib/auth/lucia";
+import { getSession, getAuthUser } from "@/lib/auth/server";
 import { isAdmin } from "@/lib/auth/admin";
 
 export default async function DashboardLayout({
@@ -9,17 +16,16 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user } = await validateRequest();
+  const session = await getSession();
+  const user = getAuthUser(session);
 
   // Redirect to login if not authenticated
   if (!user) {
     redirect("/login");
   }
 
-  const profile = user as AuthenticatedUser;
-
   // Double-check admin status
-  if (!isAdmin(profile.email)) {
+  if (!isAdmin(user.email)) {
     redirect("/login?error=not_admin");
   }
 
@@ -28,7 +34,7 @@ export default async function DashboardLayout({
       <Sidebar />
       <div className="ml-64 flex flex-col min-h-screen">
         <Header
-          user={{ name: profile.name, email: profile.email ?? "", image: profile.avatarUrl }}
+          user={{ name: user.name, email: user.email, image: user.image }}
           breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }]}
         />
         <main className="flex-1 p-6">{children}</main>

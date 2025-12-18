@@ -1,3 +1,10 @@
+/**
+ * Environment Variables
+ * 
+ * Centralized access to environment variables.
+ * Throws at startup if required vars are missing.
+ */
+
 const getEnvVar = (key: string, fallback?: string) => {
   const value = process.env[key] ?? fallback;
 
@@ -20,6 +27,8 @@ export const env = {
   ),
   googleClientId: getEnvVar("AUTH_GOOGLE_CLIENT_ID"),
   googleClientSecret: getEnvVar("AUTH_GOOGLE_CLIENT_SECRET"),
+  // Better Auth requires a secret for session encryption
+  betterAuthSecret: getEnvVar("BETTER_AUTH_SECRET"),
 };
 
 export const isProduction = env.nodeEnv === "production";

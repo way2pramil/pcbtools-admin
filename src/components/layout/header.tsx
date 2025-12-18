@@ -1,5 +1,12 @@
+/**
+ * Header Component
+ * 
+ * Top navigation bar with user info and sign out.
+ */
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Breadcrumb } from "./breadcrumb";
+import { SignOutButton } from "./sign-out-button";
 
 interface HeaderProps {
   user?: { name: string | null; email: string; image: string | null };
@@ -23,6 +30,7 @@ export function Header({ user, breadcrumbs }: HeaderProps) {
               {(user.name || user.email).charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
+          <SignOutButton />
         </div>
       )}
     </header>

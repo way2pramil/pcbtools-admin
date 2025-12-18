@@ -11,8 +11,8 @@
 | Next.js | 16 | App Router |
 | React | 19 | UI |
 | Tailwind | v4 | Styling (CSS-first) |
-| Prisma | 5 | Database ORM |
-| Lucia | v3 | Authentication |
+| Prisma | 7.2.0 | Database ORM |
+| Better Auth | 1.x | Authentication |
 | Bun | 1.x | Runtime/Package Manager |
 
 ---
@@ -41,7 +41,11 @@ src/
 │   └── charts/            # SVG chart components
 │
 ├── lib/
-│   ├── auth/              # Lucia auth setup
+│   ├── auth/              # Better Auth setup
+│   │   ├── index.ts       # Main auth config
+│   │   ├── client.ts      # Client-side hooks
+│   │   ├── server.ts      # Server-side helpers
+│   │   └── admin.ts       # Admin email whitelist
 │   ├── prisma.ts          # Database client
 │   ├── env.ts             # Environment variables
 │   └── utils.ts           # cn() helper
@@ -252,26 +256,42 @@ const bugs = await prisma.bugReport.findMany({
 
 ---
 
-## Auth (Lucia)
+## Auth (Better Auth)
 
-### Check auth in pages
+### Check auth in Server Components
 ```tsx
-import { validateRequest } from "@/lib/auth/lucia";
+import { getSession, getAuthUser } from "@/lib/auth/server";
 import { isAdmin } from "@/lib/auth/admin";
 
-const { user } = await validateRequest();
+const session = await getSession();
+const user = getAuthUser(session);
 if (!user || !isAdmin(user.email)) {
   redirect("/login");
 }
+```
+
+### Client-side auth (hooks)
+```tsx
+"use client";
+import { signIn, signOut, useSession } from "@/lib/auth/client";
+
+// Sign in with Google
+await signIn.social({ provider: "google", callbackURL: "/dashboard" });
+
+// Sign out
+await signOut();
+
+// Get session in client component
+const { data: session } = useSession();
 ```
 
 ### User type
 ```tsx
 type AuthenticatedUser = {
   id: string;
-  email: string | null;
-  name: string | null;
-  avatarUrl: string | null;
+  email: string;
+  name: string;
+  image: string | null;
 };
 ```
 
@@ -343,6 +363,7 @@ ADMIN_EMAILS=email1@example.com,email2@example.com
 NEXT_PUBLIC_APP_URL=https://admin.pcbtools.xyz
 AUTH_GOOGLE_CLIENT_ID=xxx
 AUTH_GOOGLE_CLIENT_SECRET=xxx
+BETTER_AUTH_SECRET=xxx  # Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
 ---
@@ -352,5 +373,5 @@ AUTH_GOOGLE_CLIENT_SECRET=xxx
 1. **No files > 200 lines** - Split into smaller modules
 2. **No `any` types** - Use proper TypeScript
 3. **Use barrel exports** - Import from `@/components`
-4. **Auth on all API routes** - Use `validateRequest()` + `isAdmin()`
+4. **Auth on all API routes** - Use `getSession()` + `isAdmin()`
 5. **`force-dynamic`** - Add to pages with DB queries
