@@ -165,7 +165,8 @@ export async function getAnalyticsOverview(): Promise<AnalyticsData | null> {
     };
   } catch (error) {
     console.error("Failed to fetch analytics:", error);
-    return null;
+    // Re-throw with more context
+    throw error;
   }
 }
 

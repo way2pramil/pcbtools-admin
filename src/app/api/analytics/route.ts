@@ -36,8 +36,9 @@ export async function GET() {
     return NextResponse.json({ data, configured: true });
   } catch (error) {
     console.error("Analytics API error:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Internal server error", configured: true },
+      { error: `Analytics error: ${errorMessage}`, configured: true },
       { status: 500 }
     );
   }
