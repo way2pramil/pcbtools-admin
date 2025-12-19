@@ -34,11 +34,14 @@ function parsePrivateKey(key: string | undefined): string | undefined {
   }
   
   // Coolify/Docker can escape \n multiple times:
-  // \\\\n (4 backslashes) -> \\n (2 backslashes) -> \n (newline)
+  // \\\\n -> \\n -> \n (newline)
   // Keep replacing until no more escaped newlines
   while (parsed.includes("\\n")) {
     parsed = parsed.replace(/\\n/g, "\n");
   }
+  
+  // Remove any leftover backslashes before newlines (from \\\n patterns)
+  parsed = parsed.replace(/\\\n/g, "\n");
   
   // Log for debugging
   console.log("[GA] Private key parsed:", {
