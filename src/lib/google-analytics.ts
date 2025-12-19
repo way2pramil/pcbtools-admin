@@ -21,11 +21,27 @@ import { BetaAnalyticsDataClient } from "@google-analytics/data";
 const propertyId = process.env.GA_PROPERTY_ID;
 const clientEmail = process.env.GA_CLIENT_EMAIL;
 
-// Handle both escaped \n and actual newlines in private key
+// Handle various formats of private key from different environments
 function parsePrivateKey(key: string | undefined): string | undefined {
   if (!key) return undefined;
-  // First try replacing escaped \n, then handle double-escaped \\n
-  return key.replace(/\\n/g, "\n").replace(/\n\n/g, "\n");
+  
+  let parsed = key;
+  
+  // Remove surrounding quotes if present
+  if ((parsed.startsWith('"') && parsed.endsWith('"')) || 
+      (parsed.startsWith("'") && parsed.endsWith("'"))) {
+    parsed = parsed.slice(1, -1);
+  }
+  
+  // Replace literal \n with actual newlines
+  parsed = parsed.replace(/\\n/g, "\n");
+  
+  // Ensure proper PEM format
+  if (!parsed.includes("-----BEGIN")) {
+    console.error("Private key doesn't contain BEGIN marker after parsing");
+  }
+  
+  return parsed;
 }
 
 const privateKey = parsePrivateKey(process.env.GA_PRIVATE_KEY);
