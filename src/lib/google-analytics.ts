@@ -33,12 +33,23 @@ function parsePrivateKey(key: string | undefined): string | undefined {
     parsed = parsed.slice(1, -1);
   }
   
-  // Replace literal \n with actual newlines
-  parsed = parsed.replace(/\\n/g, "\n");
+  // Handle double-escaped \\n (from Docker/Coolify) first, then single \n
+  // Docker often double-escapes, so \\n becomes the literal string backslash-n
+  parsed = parsed.split("\\n").join("\n");
+  
+  // Log for debugging (remove in production)
+  console.log("[GA] Private key parsed:", {
+    length: parsed.length,
+    lineCount: parsed.split("\n").length,
+    hasBegin: parsed.includes("-----BEGIN"),
+    hasEnd: parsed.includes("-----END"),
+    firstChars: parsed.substring(0, 30),
+  });
   
   // Ensure proper PEM format
   if (!parsed.includes("-----BEGIN")) {
-    console.error("Private key doesn't contain BEGIN marker after parsing");
+    console.error("[GA] Private key doesn't contain BEGIN marker after parsing");
+    console.error("[GA] Raw key first 100 chars:", key.substring(0, 100));
   }
   
   return parsed;
