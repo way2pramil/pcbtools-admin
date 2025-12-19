@@ -16,17 +16,30 @@ import { BetaAnalyticsDataClient } from "@google-analytics/data";
 // Environment variables needed:
 // GA_PROPERTY_ID - Your GA4 property ID (e.g., "123456789")
 // GA_CLIENT_EMAIL - Service account email
-// GA_PRIVATE_KEY - Service account private key (with \n replaced)
+// GA_PRIVATE_KEY - Service account private key
 
 const propertyId = process.env.GA_PROPERTY_ID;
 const clientEmail = process.env.GA_CLIENT_EMAIL;
-const privateKey = process.env.GA_PRIVATE_KEY?.replace(/\\n/g, "\n");
+
+// Handle both escaped \n and actual newlines in private key
+function parsePrivateKey(key: string | undefined): string | undefined {
+  if (!key) return undefined;
+  // First try replacing escaped \n, then handle double-escaped \\n
+  return key.replace(/\\n/g, "\n").replace(/\n\n/g, "\n");
+}
+
+const privateKey = parsePrivateKey(process.env.GA_PRIVATE_KEY);
 
 let analyticsClient: BetaAnalyticsDataClient | null = null;
 
 function getClient(): BetaAnalyticsDataClient | null {
   if (!propertyId || !clientEmail || !privateKey) {
-    console.warn("Google Analytics credentials not configured");
+    console.warn("Google Analytics credentials not configured", {
+      hasPropertyId: !!propertyId,
+      hasClientEmail: !!clientEmail,
+      hasPrivateKey: !!privateKey,
+      keyStartsWith: privateKey?.substring(0, 30),
+    });
     return null;
   }
 
