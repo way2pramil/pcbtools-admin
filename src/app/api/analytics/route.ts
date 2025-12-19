@@ -25,14 +25,6 @@ export async function GET() {
 
   try {
     const data = await getAnalyticsOverview();
-    
-    if (!data) {
-      return NextResponse.json(
-        { error: "Failed to fetch analytics data", configured: true },
-        { status: 500 }
-      );
-    }
-
     return NextResponse.json({ data, configured: true });
   } catch (error) {
     console.error("Analytics API error:", error);

@@ -58,10 +58,10 @@ export interface AnalyticsData {
 /**
  * Fetch overview analytics for the last 30 days
  */
-export async function getAnalyticsOverview(): Promise<AnalyticsData | null> {
+export async function getAnalyticsOverview(): Promise<AnalyticsData> {
   const client = getClient();
   if (!client || !propertyId) {
-    return null;
+    throw new Error("Google Analytics client not configured");
   }
 
   try {
