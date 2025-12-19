@@ -1,13 +1,12 @@
 # Stage 1: Dependencies
-# Use debian-slim baseline for CPUs without AVX2 support
-FROM oven/bun:1-debian-slim AS deps
+FROM oven/bun:1 AS deps
 WORKDIR /app
 
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 
 # Stage 2: Builder
-FROM oven/bun:1-debian-slim AS builder
+FROM oven/bun:1 AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
@@ -20,7 +19,7 @@ RUN bun prisma generate
 RUN bun run build
 
 # Stage 3: Runner
-FROM oven/bun:1-debian-slim AS runner
+FROM oven/bun:1-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production

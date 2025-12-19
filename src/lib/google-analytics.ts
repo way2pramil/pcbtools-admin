@@ -33,12 +33,12 @@ function parsePrivateKey(key: string | undefined): string | undefined {
     parsed = parsed.slice(1, -1);
   }
   
-  // Handle various escape formats:
-  // 1. Replace literal \n (backslash + n) with real newline
-  parsed = parsed.replace(/\\n/g, "\n");
-  
-  // 2. If there are backslashes before newlines, remove them
-  parsed = parsed.replace(/\\\n/g, "\n");
+  // Coolify/Docker can escape \n multiple times:
+  // \\\\n (4 backslashes) -> \\n (2 backslashes) -> \n (newline)
+  // Keep replacing until no more escaped newlines
+  while (parsed.includes("\\n")) {
+    parsed = parsed.replace(/\\n/g, "\n");
+  }
   
   // Log for debugging
   console.log("[GA] Private key parsed:", {
