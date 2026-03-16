@@ -44,9 +44,9 @@ export function PieChart({ data, size = 180 }: PieChartProps) {
   };
 
   return (
-    <div className="flex items-center justify-center gap-6">
+    <div className="flex items-center justify-center gap-6" role="img" aria-label="Pie chart showing distribution">
       <div className="relative" style={{ width: size, height: size }}>
-        <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+        <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90" aria-hidden="true">
           {segments.map((seg, i) => {
             const isHovered = hoveredIndex === i;
             const outerR = isHovered ? 42 : 40;

@@ -20,15 +20,22 @@ import {
 
 interface AnalyticsData {
   totalUsers: number;
+  newUsers: number;
   activeUsers: number;
   pageViews: number;
   sessions: number;
   avgSessionDuration: number;
   bounceRate: number;
+  engagementRate: number;
+  pagesPerSession: number;
+  sessionsPerUser: number;
   weeklyUsers: { label: string; value: number }[];
-  topPages: { path: string; views: number }[];
+  weeklyPageViews: { label: string; value: number }[];
+  topPages: { path: string; views: number; avgDuration: number }[];
   topCountries: { country: string; users: number }[];
   deviceCategories: { device: string; users: number }[];
+  browsers: { browser: string; users: number }[];
+  trafficSources: { source: string; users: number; sessions: number }[];
 }
 
 function formatDuration(seconds: number): string {
@@ -160,25 +167,25 @@ export function AnalyticsDashboard() {
       label: "Total Users", 
       value: formatNumber(data.totalUsers), 
       icon: Users,
-      subtitle: "Last 30 days"
+      subtitle: `${formatNumber(data.newUsers)} new`
     },
     { 
       label: "Page Views", 
       value: formatNumber(data.pageViews), 
       icon: Eye,
-      subtitle: "Last 30 days"
+      subtitle: `${data.pagesPerSession.toFixed(1)} per session`
     },
     { 
       label: "Avg. Session", 
       value: formatDuration(data.avgSessionDuration), 
       icon: Clock,
-      subtitle: "Duration"
+      subtitle: `${data.sessionsPerUser.toFixed(1)} sessions/user`
     },
     { 
-      label: "Bounce Rate", 
-      value: `${data.bounceRate.toFixed(1)}%`, 
+      label: "Engagement", 
+      value: `${data.engagementRate.toFixed(1)}%`, 
       icon: TrendingUp,
-      subtitle: "Single page visits"
+      subtitle: `${data.bounceRate.toFixed(1)}% bounce rate`
     },
   ];
 
@@ -194,7 +201,7 @@ export function AnalyticsDashboard() {
       <div className="space-y-1">
         <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
         <p className="text-muted-foreground">
-          Real-time data from Google Analytics for pcbtools.xyz
+          Usage statistics and trends for pcbtools.xyz (last 30 days)
         </p>
       </div>
 
@@ -208,7 +215,7 @@ export function AnalyticsDashboard() {
                   <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
                   <p className="text-2xl font-bold tracking-tight">{stat.value}</p>
                 </div>
-                <div className="rounded-full bg-primary/10 p-3">
+                <div className="rounded-full bg-primary/15 p-3">
                   <stat.icon className="h-5 w-5 text-primary" />
                 </div>
               </div>
@@ -219,8 +226,8 @@ export function AnalyticsDashboard() {
       </div>
 
       {/* Charts Row */}
-      <div className="grid gap-6 lg:grid-cols-5">
-        <Card className="lg:col-span-3">
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold">Weekly Active Users</CardTitle>
             <p className="text-xs text-muted-foreground">User activity over the past 7 days</p>
@@ -236,16 +243,16 @@ export function AnalyticsDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2">
+        <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Device Categories</CardTitle>
-            <p className="text-xs text-muted-foreground">Users by device type</p>
+            <CardTitle className="text-base font-semibold">Weekly Page Views</CardTitle>
+            <p className="text-xs text-muted-foreground">Page views over the past 7 days</p>
           </CardHeader>
-          <CardContent className="flex items-center justify-center pt-4">
-            {deviceData.length > 0 ? (
-              <PieChart data={deviceData} size={160} />
+          <CardContent>
+            {data.weeklyPageViews.length > 0 ? (
+              <AreaChart data={data.weeklyPageViews} height={220} />
             ) : (
-              <div className="flex h-[160px] items-center justify-center text-muted-foreground">
+              <div className="flex h-[220px] items-center justify-center text-muted-foreground">
                 No data available
               </div>
             )}
@@ -253,76 +260,41 @@ export function AnalyticsDashboard() {
         </Card>
       </div>
 
-      {/* User Growth Trend */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base font-semibold">User Trend</CardTitle>
-          <p className="text-xs text-muted-foreground">Daily active users over the past week</p>
-        </CardHeader>
-        <CardContent>
-          {data.weeklyUsers.length > 0 ? (
-            <AreaChart data={data.weeklyUsers} height={240} />
-          ) : (
-            <div className="flex h-[240px] items-center justify-center text-muted-foreground">
-              No data available
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Bottom Grid */}
+      {/* Device & Browser Row */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Top Pages */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold">Top Pages</CardTitle>
-            <p className="text-xs text-muted-foreground">Most viewed pages (30 days)</p>
+            <CardTitle className="text-base font-semibold">Device Categories</CardTitle>
+            <p className="text-xs text-muted-foreground">Users by device type</p>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {data.topPages.slice(0, 8).map((page, i) => (
-                <div key={page.path} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-medium">
-                      {i + 1}
-                    </span>
-                    <span className="text-sm font-mono truncate max-w-[200px]" title={page.path}>
-                      {page.path}
-                    </span>
-                  </div>
-                  <span className="text-sm font-medium text-muted-foreground">
-                    {formatNumber(page.views)}
-                  </span>
-                </div>
-              ))}
-              {data.topPages.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center py-4">No data available</p>
-              )}
-            </div>
+          <CardContent className="flex items-center justify-center pt-4">
+            {deviceData.length > 0 ? (
+              <PieChart data={deviceData} size={180} />
+            ) : (
+              <div className="flex h-[180px] items-center justify-center text-muted-foreground">
+                No data available
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Top Countries */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <Globe className="h-4 w-4" />
-              Top Countries
-            </CardTitle>
-            <p className="text-xs text-muted-foreground">Users by location (30 days)</p>
+            <CardTitle className="text-base font-semibold">Browsers</CardTitle>
+            <p className="text-xs text-muted-foreground">Users by browser (30 days)</p>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {data.topCountries.map((country, i) => {
+              {data.browsers.map((browser, i) => {
                 const percentage = data.totalUsers > 0 
-                  ? ((country.users / data.totalUsers) * 100).toFixed(1)
+                  ? ((browser.users / data.totalUsers) * 100).toFixed(1)
                   : "0";
                 return (
-                  <div key={country.country} className="space-y-1">
+                  <div key={browser.browser} className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">{country.country}</span>
+                      <span className="text-sm font-medium">{browser.browser}</span>
                       <span className="text-sm text-muted-foreground">
-                        {formatNumber(country.users)} ({percentage}%)
+                        {formatNumber(browser.users)} ({percentage}%)
                       </span>
                     </div>
                     <div className="h-2 rounded-full bg-muted overflow-hidden">
@@ -334,13 +306,127 @@ export function AnalyticsDashboard() {
                   </div>
                 );
               })}
-              {data.topCountries.length === 0 && (
+              {data.browsers.length === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-4">No data available</p>
               )}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Bottom Grid */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Top Pages */}
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-semibold">Top Pages</CardTitle>
+            <p className="text-xs text-muted-foreground">Most viewed pages (30 days)</p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {data.topPages.slice(0, 8).map((page, i) => (
+                <div key={page.path} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-medium shrink-0">
+                      {i + 1}
+                    </span>
+                    <span className="text-sm font-mono truncate" title={page.path}>
+                      {page.path}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4 shrink-0">
+                    <span className="text-xs text-muted-foreground">
+                      {formatDuration(page.avgDuration)} avg
+                    </span>
+                    <span className="text-sm font-medium text-muted-foreground w-12 text-right">
+                      {formatNumber(page.views)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+              {data.topPages.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">No data available</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Traffic Sources */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-semibold">Traffic Sources</CardTitle>
+            <p className="text-xs text-muted-foreground">Where users come from</p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {data.trafficSources.map((source, i) => {
+                const percentage = data.sessions > 0 
+                  ? ((source.sessions / data.sessions) * 100).toFixed(1)
+                  : "0";
+                return (
+                  <div key={source.source} className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium truncate">{source.source}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {percentage}%
+                      </span>
+                    </div>
+                    <div className="h-2 rounded-full bg-muted overflow-hidden">
+                      <div 
+                        className="h-full bg-primary/60 rounded-full transition-all"
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+              {data.trafficSources.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">No data available</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Top Countries */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-semibold flex items-center gap-2">
+            <Globe className="h-4 w-4" />
+            Top Countries
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">Users by location (30 days)</p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {data.topCountries.map((country, i) => {
+              const percentage = data.totalUsers > 0 
+                ? ((country.users / data.totalUsers) * 100).toFixed(1)
+                : "0";
+              return (
+                <div key={country.country} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">{country.country}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {formatNumber(country.users)}
+                    </span>
+                  </div>
+                  <div className="h-2 rounded-full bg-muted overflow-hidden">
+                    <div 
+                      className="h-full bg-primary/60 rounded-full transition-all"
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-muted-foreground">{percentage}%</span>
+                </div>
+              );
+            })}
+            {data.topCountries.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4 col-span-full">No data available</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

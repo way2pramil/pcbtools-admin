@@ -90,15 +90,22 @@ function getClient(): BetaAnalyticsDataClient | null {
 
 export interface AnalyticsData {
   totalUsers: number;
+  newUsers: number;
   activeUsers: number;
   pageViews: number;
   sessions: number;
   avgSessionDuration: number;
   bounceRate: number;
+  engagementRate: number;
+  pagesPerSession: number;
+  sessionsPerUser: number;
   weeklyUsers: { label: string; value: number }[];
-  topPages: { path: string; views: number }[];
+  weeklyPageViews: { label: string; value: number }[];
+  topPages: { path: string; views: number; avgDuration: number }[];
   topCountries: { country: string; users: number }[];
   deviceCategories: { device: string; users: number }[];
+  browsers: { browser: string; users: number }[];
+  trafficSources: { source: string; users: number; sessions: number }[];
 }
 
 /**
@@ -111,28 +118,36 @@ export async function getAnalyticsOverview(): Promise<AnalyticsData> {
   }
 
   try {
-    // Fetch main metrics
+    // Fetch main metrics (30 days)
     const [metricsResponse] = await client.runReport({
       property: `properties/${propertyId}`,
       dateRanges: [{ startDate: "30daysAgo", endDate: "today" }],
       metrics: [
         { name: "totalUsers" },
+        { name: "newUsers" },
         { name: "activeUsers" },
         { name: "screenPageViews" },
         { name: "sessions" },
         { name: "averageSessionDuration" },
         { name: "bounceRate" },
+        { name: "engagementRate" },
+        { name: "screenPageViewsPerSession" },
+        { name: "sessionsPerUser" },
       ],
     });
 
     const row = metricsResponse.rows?.[0];
     const metrics = {
       totalUsers: parseInt(row?.metricValues?.[0]?.value || "0"),
-      activeUsers: parseInt(row?.metricValues?.[1]?.value || "0"),
-      pageViews: parseInt(row?.metricValues?.[2]?.value || "0"),
-      sessions: parseInt(row?.metricValues?.[3]?.value || "0"),
-      avgSessionDuration: parseFloat(row?.metricValues?.[4]?.value || "0"),
-      bounceRate: parseFloat(row?.metricValues?.[5]?.value || "0") * 100,
+      newUsers: parseInt(row?.metricValues?.[1]?.value || "0"),
+      activeUsers: parseInt(row?.metricValues?.[2]?.value || "0"),
+      pageViews: parseInt(row?.metricValues?.[3]?.value || "0"),
+      sessions: parseInt(row?.metricValues?.[4]?.value || "0"),
+      avgSessionDuration: parseFloat(row?.metricValues?.[5]?.value || "0"),
+      bounceRate: parseFloat(row?.metricValues?.[6]?.value || "0") * 100,
+      engagementRate: parseFloat(row?.metricValues?.[7]?.value || "0") * 100,
+      pagesPerSession: parseFloat(row?.metricValues?.[8]?.value || "0"),
+      sessionsPerUser: parseFloat(row?.metricValues?.[9]?.value || "0"),
     };
 
     // Fetch daily users for the last 7 days
@@ -141,6 +156,15 @@ export async function getAnalyticsOverview(): Promise<AnalyticsData> {
       dateRanges: [{ startDate: "7daysAgo", endDate: "today" }],
       dimensions: [{ name: "date" }],
       metrics: [{ name: "activeUsers" }],
+      orderBys: [{ dimension: { dimensionName: "date" } }],
+    });
+
+    // Fetch daily page views for the last 7 days
+    const [weeklyPageViewsResponse] = await client.runReport({
+      property: `properties/${propertyId}`,
+      dateRanges: [{ startDate: "7daysAgo", endDate: "today" }],
+      dimensions: [{ name: "date" }],
+      metrics: [{ name: "screenPageViews" }],
       orderBys: [{ dimension: { dimensionName: "date" } }],
     });
 
@@ -158,12 +182,28 @@ export async function getAnalyticsOverview(): Promise<AnalyticsData> {
       };
     });
 
-    // Fetch top pages
+    const weeklyPageViews = (weeklyPageViewsResponse.rows || []).map((row) => {
+      const dateStr = row.dimensionValues?.[0]?.value || "";
+      const date = new Date(
+        parseInt(dateStr.slice(0, 4)),
+        parseInt(dateStr.slice(4, 6)) - 1,
+        parseInt(dateStr.slice(6, 8))
+      );
+      return {
+        label: dayNames[date.getDay()],
+        value: parseInt(row.metricValues?.[0]?.value || "0"),
+      };
+    });
+
+    // Fetch top pages with avg duration
     const [pagesResponse] = await client.runReport({
       property: `properties/${propertyId}`,
       dateRanges: [{ startDate: "30daysAgo", endDate: "today" }],
       dimensions: [{ name: "pagePath" }],
-      metrics: [{ name: "screenPageViews" }],
+      metrics: [
+        { name: "screenPageViews" },
+        { name: "averageSessionDuration" },
+      ],
       orderBys: [{ metric: { metricName: "screenPageViews" }, desc: true }],
       limit: 10,
     });
@@ -171,6 +211,7 @@ export async function getAnalyticsOverview(): Promise<AnalyticsData> {
     const topPages = (pagesResponse.rows || []).map((row) => ({
       path: row.dimensionValues?.[0]?.value || "",
       views: parseInt(row.metricValues?.[0]?.value || "0"),
+      avgDuration: parseFloat(row.metricValues?.[1]?.value || "0"),
     }));
 
     // Fetch top countries
@@ -202,12 +243,49 @@ export async function getAnalyticsOverview(): Promise<AnalyticsData> {
       users: parseInt(row.metricValues?.[0]?.value || "0"),
     }));
 
+    // Fetch browsers
+    const [browsersResponse] = await client.runReport({
+      property: `properties/${propertyId}`,
+      dateRanges: [{ startDate: "30daysAgo", endDate: "today" }],
+      dimensions: [{ name: "browser" }],
+      metrics: [{ name: "activeUsers" }],
+      orderBys: [{ metric: { metricName: "activeUsers" }, desc: true }],
+      limit: 5,
+    });
+
+    const browsers = (browsersResponse.rows || []).map((row) => ({
+      browser: row.dimensionValues?.[0]?.value || "",
+      users: parseInt(row.metricValues?.[0]?.value || "0"),
+    }));
+
+    // Fetch traffic sources
+    const [sourcesResponse] = await client.runReport({
+      property: `properties/${propertyId}`,
+      dateRanges: [{ startDate: "30daysAgo", endDate: "today" }],
+      dimensions: [{ name: "sessionDefaultChannelGroup" }],
+      metrics: [
+        { name: "activeUsers" },
+        { name: "sessions" },
+      ],
+      orderBys: [{ metric: { metricName: "activeUsers" }, desc: true }],
+      limit: 6,
+    });
+
+    const trafficSources = (sourcesResponse.rows || []).map((row) => ({
+      source: row.dimensionValues?.[0]?.value || "",
+      users: parseInt(row.metricValues?.[0]?.value || "0"),
+      sessions: parseInt(row.metricValues?.[1]?.value || "0"),
+    }));
+
     return {
       ...metrics,
       weeklyUsers,
+      weeklyPageViews,
       topPages,
       topCountries,
       deviceCategories,
+      browsers,
+      trafficSources,
     };
   } catch (error) {
     console.error("Failed to fetch analytics:", error);

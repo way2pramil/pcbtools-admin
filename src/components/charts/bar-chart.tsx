@@ -14,7 +14,7 @@ export function BarChart({ data, height = 200 }: BarChartProps) {
 
   return (
     <div className="w-full" style={{ height }}>
-      <svg viewBox={`0 0 100 ${height}`} className="w-full h-full" preserveAspectRatio="none">
+      <svg viewBox={`0 0 100 ${height}`} className="w-full h-full" preserveAspectRatio="xMidYMid meet">
         <defs>
           <linearGradient id="barGradient" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" className="[stop-color:hsl(var(--chart-1))]" stopOpacity="1" />
@@ -46,6 +46,8 @@ export function BarChart({ data, height = 200 }: BarChartProps) {
               onMouseEnter={() => setHoveredIndex(i)}
               onMouseLeave={() => setHoveredIndex(null)}
               style={{ cursor: "pointer" }}
+              role="img"
+              aria-label={`${d.label}: ${d.value}`}
             >
               <rect
                 x={i * barWidth + barWidth * 0.15}
@@ -63,7 +65,7 @@ export function BarChart({ data, height = 200 }: BarChartProps) {
                   x={i * barWidth + barWidth / 2}
                   y={height - barHeight - 25}
                   textAnchor="middle"
-                  className="text-[7px] fill-foreground font-medium"
+                  className="text-[8px] fill-foreground font-medium"
                 >
                   {d.value}
                 </text>
@@ -72,7 +74,7 @@ export function BarChart({ data, height = 200 }: BarChartProps) {
                 x={i * barWidth + barWidth / 2}
                 y={height - 5}
                 textAnchor="middle"
-                className="text-[6px] fill-muted-foreground"
+                className="text-[7px] fill-muted-foreground"
               >
                 {d.label}
               </text>

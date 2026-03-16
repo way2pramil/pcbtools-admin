@@ -32,12 +32,12 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
-      <div className="ml-64 flex flex-col min-h-screen">
+      <div className="lg:ml-64 flex flex-col min-h-screen">
         <Header
           user={{ name: user.name, email: user.email, image: user.image }}
           breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }]}
         />
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-6 pt-16 lg:pt-6">{children}</main>
       </div>
     </div>
   );

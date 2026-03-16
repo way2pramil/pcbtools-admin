@@ -46,8 +46,8 @@ export function AreaChart({ data, height = 200 }: AreaChartProps) {
   const areaD = `${pathD} L ${100 - padding.right} ${height - padding.bottom} L ${padding.left} ${height - padding.bottom} Z`;
 
   return (
-    <div className="w-full relative" style={{ height }}>
-      <svg viewBox={`0 0 100 ${height}`} className="w-full h-full" preserveAspectRatio="none">
+    <div className="w-full relative" style={{ height }} role="img" aria-label="Area chart showing data trend">
+      <svg viewBox={`0 0 100 ${height}`} className="w-full h-full" preserveAspectRatio="xMidYMid meet">
         <defs>
           <linearGradient id="areaGradientModern" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" className="[stop-color:hsl(var(--chart-1))]" stopOpacity="0.25" />
@@ -127,10 +127,10 @@ export function AreaChart({ data, height = 200 }: AreaChartProps) {
                     strokeDasharray="2 2"
                   />
                   <rect
-                    x={p.x - 8}
-                    y={p.y - 18}
-                    width="16"
-                    height="12"
+                    x={p.x - 10}
+                    y={p.y - 20}
+                    width="20"
+                    height="14"
                     rx="2"
                     className="fill-popover stroke-border"
                     strokeWidth="0.5"
@@ -139,7 +139,7 @@ export function AreaChart({ data, height = 200 }: AreaChartProps) {
                     x={p.x}
                     y={p.y - 10}
                     textAnchor="middle"
-                    className="text-[5px] fill-foreground font-medium"
+                    className="text-[7px] fill-foreground font-medium"
                   >
                     {p.data.value}
                   </text>
