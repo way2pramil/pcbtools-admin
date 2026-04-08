@@ -18,6 +18,8 @@ export default async function UsersPage() {
       _count: {
         select: {
           bugReports: true,
+          submissions: true,
+          jobs: true,
         },
       },
     },
@@ -57,6 +59,7 @@ export default async function UsersPage() {
                 <TableHead>User</TableHead>
                 <TableHead>Provider</TableHead>
                 <TableHead>Bug Reports</TableHead>
+                <TableHead>Submissions</TableHead>
                 <TableHead>Joined</TableHead>
               </TableRow>
             </TableHeader>
@@ -90,6 +93,7 @@ export default async function UsersPage() {
                     </div>
                   </TableCell>
                   <TableCell>{user._count.bugReports}</TableCell>
+                  <TableCell>{user._count.submissions}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1 text-muted-foreground">
                       <Calendar className="h-4 w-4" />

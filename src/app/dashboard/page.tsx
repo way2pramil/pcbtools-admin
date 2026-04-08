@@ -1,4 +1,4 @@
-import { Activity, Bug, Users, TrendingUp } from "lucide-react";
+import { Activity, Bug, Users, TrendingUp, FileText, Briefcase } from "lucide-react";
 import { StatsCard } from "@/components/data";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { prisma } from "@/lib/prisma";
@@ -6,11 +6,13 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  // Fetch stats from database
-  const [totalUsers, totalBugs, openBugs] = await Promise.all([
+  const [totalUsers, totalBugs, openBugs, pendingSubmissions, totalSubmissions, activeJobs] = await Promise.all([
     prisma.user.count(),
     prisma.bugReport.count(),
     prisma.bugReport.count({ where: { status: "open" } }),
+    prisma.submission.count({ where: { status: "PENDING_REVIEW" } }),
+    prisma.submission.count(),
+    prisma.job.count({ where: { status: "active" } }),
   ]);
 
   const resolvedBugs = totalBugs - openBugs;
@@ -25,11 +27,22 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <StatsCard
           title="Total Users"
           value={totalUsers}
           icon={Users}
+        />
+        <StatsCard
+          title="Pending Submissions"
+          value={pendingSubmissions}
+          icon={FileText}
+          description={`${totalSubmissions} total`}
+        />
+        <StatsCard
+          title="Active Jobs"
+          value={activeJobs}
+          icon={Briefcase}
         />
         <StatsCard
           title="Open Bugs"
@@ -42,7 +55,7 @@ export default async function DashboardPage() {
           icon={Activity}
         />
         <StatsCard
-          title="Success Rate"
+          title="Bug Resolution"
           value={totalBugs > 0 ? `${Math.round((resolvedBugs / totalBugs) * 100)}%` : "N/A"}
           icon={TrendingUp}
         />

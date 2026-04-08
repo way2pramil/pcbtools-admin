@@ -15,10 +15,14 @@ import {
   ChevronRight,
   Menu,
   X,
+  FileText,
+  Briefcase,
 } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+  { href: "/dashboard/submissions", label: "Submissions", icon: FileText },
+  { href: "/dashboard/jobs", label: "Job Board", icon: Briefcase },
   { href: "/dashboard/bugs", label: "Bug Reports", icon: Bug },
   { href: "/dashboard/users", label: "Users", icon: Users },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },

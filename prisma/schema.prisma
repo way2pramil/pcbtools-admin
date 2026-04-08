@@ -15,9 +15,10 @@ datasource db {
 model AdminUser {
   id            String    @id @default(cuid())
   email         String    @unique
-  name          String
   emailVerified Boolean   @default(false)
+  name          String?
   image         String?
+  role          String    @default("admin")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -95,6 +96,9 @@ model User {
   bugReports    BugReport[]
   companies     Company[]
   jobs          Job[]
+  submissions   Submission[]
+  projects      Project[]
+  uploads       Upload[]
 }
 
 model Session {
@@ -183,9 +187,10 @@ model BugReport {
 model Company {
   id          String   @id @default(cuid())
   name        String
-  description String?  @db.Text
-  website     String?
   logo        String?
+  location    String?
+  bio         String?  @db.Text
+  website     String?
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   jobs        Job[]
@@ -196,21 +201,170 @@ model Company {
 }
 
 model Job {
-  id           String    @id @default(cuid())
-  title        String
-  description  String    @db.Text
-  location     String?
-  salary       String?
-  type         String    @default("full-time") // full-time, part-time, contract, remote
-  requirements String?   @db.Text
-  companyId    String
-  company      Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  userId       String
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt    DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id             String       @id @default(cuid())
+  title          String
+  location       String
+  workplaceType  String       @default("onsite")
+  experience     Int?
+  description    String?      @db.Text
+  applyUrl       String?
+  tier           String       @default("standard")
+  status         String       @default("active")
+  companyId      String
+  company        Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   @@index([companyId])
   @@index([userId])
+  @@index([status])
+}
+
+// === Submission Pipeline ===
+
+enum ContentType {
+  AI_TOOL
+  RESOURCE
+  NEWS
+  TOOL
+  BOARD
+  RULE
+  STACKUP
+  LIBRARY
+}
+
+enum SubmissionStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  PUBLISHED
+}
+
+model Submission {
+  id               String           @id @default(uuid())
+  title            String
+  slug             String           @unique
+  contentType      ContentType
+  status           SubmissionStatus @default(PENDING_REVIEW)
+  shortDescription String?
+  description      String?          @db.Text
+  websiteUrl       String?
+  githubUrl        String?
+  logoUrl          String?
+  coverImageUrl    String?
+  tags             String[]
+  viewCount        Int              @default(0)
+
+  authorId         String
+  author           User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  publishedAt      DateTime?
+
+  metadata         SubmissionMeta[]
+
+  @@index([contentType, status])
+  @@index([authorId])
+  @@index([contentType, publishedAt])
+}
+
+model SubmissionMeta {
+  id           String     @id @default(uuid())
+  submissionId String
+  key          String
+  value        String     @db.Text
+
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  @@index([submissionId, key])
+}
+
+// === News Aggregator ===
+
+model NewsArticle {
+  id          String   @id @default(cuid())
+  title       String
+  url         String   @unique
+  source      String
+  category    String   @default("PCB & Electronics")
+  image       String?
+  snippet     String?  @db.Text
+  tags        String[]
+  publishedAt DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([source])
+  @@index([category])
+  @@index([publishedAt])
+}
+
+// === Saved Projects ===
+
+model Project {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String   @db.VarChar(100)
+  data      Json     @default("{\"version\":1,\"calculations\":[]}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("project")
+}
+
+// === Gerber Upload & Analysis ===
+
+enum UploadStatus {
+  UPLOADING
+  UPLOADED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model Upload {
+  id           String        @id @default(cuid())
+  userId       String
+  filename     String
+  originalName String
+  fileSize     Int
+  mimeType     String
+  storageKey   String        @unique
+  publicUrl    String?
+  status       UploadStatus  @default(UPLOADING)
+  metadata     Json?         @default("{}")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  analysis     UploadAnalysis?
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model UploadAnalysis {
+  id             String   @id @default(cuid())
+  uploadId       String   @unique
+  layerCount     Int      @default(0)
+  boardWidth     Float?
+  boardHeight    Float?
+  drillHoles     Int      @default(0)
+  copperLayers   Int      @default(0)
+  surfaceFinish  String?
+  parsedData     Json?
+  drcViolations  Json?    @default("[]")
+  costEstimate   Json?
+  createdAt      DateTime @default(now())
+
+  upload         Upload   @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+
+  @@index([uploadId])
 }

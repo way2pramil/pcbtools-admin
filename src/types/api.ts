@@ -20,6 +20,10 @@ export interface UpdateBugRequest {
   adminNotes?: string;
 }
 
+export interface UpdateSubmissionRequest {
+  status?: string;
+}
+
 export interface ListParams {
   page?: number;
   pageSize?: number;
