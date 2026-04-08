@@ -168,6 +168,22 @@ export default async function SubmissionsPage() {
                     <SubmissionActions
                       id={sub.id}
                       currentStatus={sub.status}
+                      submission={{
+                        title: sub.title,
+                        slug: sub.slug,
+                        contentType: sub.contentType,
+                        shortDescription: sub.shortDescription,
+                        description: sub.description,
+                        websiteUrl: sub.websiteUrl,
+                        githubUrl: sub.githubUrl,
+                        logoUrl: sub.logoUrl,
+                        coverImageUrl: sub.coverImageUrl,
+                        tags: sub.tags,
+                        viewCount: sub.viewCount,
+                        metadata: sub.metadata,
+                        author: sub.author,
+                        createdAt: sub.createdAt.toISOString(),
+                      }}
                     />
                   </TableCell>
                 </TableRow>
